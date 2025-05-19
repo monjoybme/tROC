@@ -1,9 +1,10 @@
 # ====================
-# PART 2: TESTING DATA
+# PART 2: TESTING DATA (using timeROC)
 # ====================
 
 # Load libraries
 library(survival)
+library(timeROC)
 
 # === 1. Load test data ===
 test_data <- read.csv("test_data.csv")
