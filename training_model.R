@@ -1,11 +1,11 @@
 # ====================
-# PART 1: TRAINING DATA
+# PART 1: TRAINING DATA (using timeROC)
 # ====================
 
 # Load necessary libraries
-install.packages(c("survival", "survivalROC"))
+install.packages(c("survival", "timeROC"))
 library(survival)
-library(survivalROC)
+library(timeROC)
 
 # === 1. Load or prepare training data ===
 # Assuming your training data has: time, status, and predictors (X1, X2, ...)
@@ -16,17 +16,18 @@ train_data <- read.csv("train_data.csv")
 cox_model <- coxph(Surv(time, status) ~ ., data = train_data)
 train_data$log_risk_score <- predict(cox_model, type = "lp")  # linear predictor
 
-# === 3. Compute time-dependent ROC at 10 years (120 months) ===
-roc <- survivalROC(
-  Stime = train_data$time,
-  status = train_data$status,
+# === 3. Compute time-dependent ROC at 10 years (120 months) using timeROC ===
+roc <- timeROC(
+  T = train_data$time,
+  delta = train_data$status,
   marker = train_data$log_risk_score,
-  predict.time = 120,  # 10 years
-  method = "KM"
+  cause = 1,  # Event of interest (e.g., death)
+  times = 120,  # 10 years = 120 months
+  iid = TRUE
 )
 
 # === 4. Find optimal cutoff using Youden Index ===
-youden_index <- roc$TP - roc$FP
+youden_index <- roc$TPR - roc$FPR
 optimal_idx <- which.max(youden_index)
 cutoff <- roc$cut.values[optimal_idx]
 cat("Optimal cutoff (Youden Index):", cutoff, "\n")
